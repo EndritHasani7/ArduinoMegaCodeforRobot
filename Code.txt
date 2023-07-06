@@ -1,0 +1,159 @@
+#include <Arduino.h>
+
+//Read from radio reciever
+#define Throttle  3
+#define Elevator  4
+#define Aileron   5
+
+//pins for  Front Right (FR) motor
+#define FR_R_PWM   6
+#define FR_L_PWM   7
+
+//pins for  Rear Right (RR) motor
+#define RR_R_PWM   8
+#define RR_L_PWM   9
+
+//pins for  Front Left (FL) motor
+#define FL_R_PWM   10
+#define FL_L_PWM   11
+
+//pins for  Rear Left (RL) motor
+#define RL_R_PWM   12
+#define RL_L_PWM   13
+
+unsigned long throttle_dur = 0;
+unsigned long elevator_dur = 0;
+unsigned long aileron_dur  = 0;
+
+unsigned int power = 0;
+
+void setup() {
+  Serial.begin(9600);
+
+  pinMode(Throttle, INPUT);
+  pinMode(Elevator, INPUT);
+  pinMode(Aileron, INPUT);
+
+  pinMode (FR_R_PWM, OUTPUT);
+  pinMode (FR_L_PWM, OUTPUT);
+
+  pinMode (RR_R_PWM, OUTPUT);
+  pinMode (RR_L_PWM, OUTPUT);
+
+   pinMode (FL_R_PWM, OUTPUT);
+  pinMode (FL_L_PWM, OUTPUT);
+
+   pinMode (RL_R_PWM, OUTPUT);
+  pinMode (RL_L_PWM, OUTPUT);
+
+}
+
+void loop() 
+{
+
+  //measure inputs from radio reciever
+  throttle_dur = pulseIn(Throttle, HIGH);
+  elevator_dur = pulseIn(Elevator, HIGH);
+  aileron_dur  = pulseIn(Aileron, HIGH);
+
+  //fix throttle to 1000
+  if (throttle_dur >= 990 && throttle_dur <= 1010 )
+  throttle_dur = 1000;
+
+  //fix eleavtor to 1500
+    if (elevator_dur >= 1600 && elevator_dur <= 1400 )
+  elevator_dur = 1500;
+
+
+  power = map (throttle_dur, 1000, 2000, 0, 255);
+
+
+if (elevator_dur > 1400 && elevator_dur < 1600)
+{
+     digitalWrite(FR_L_PWM, LOW);
+     digitalWrite(FR_R_PWM, LOW);
+
+     digitalWrite(RR_L_PWM, LOW);
+     digitalWrite(RR_R_PWM, LOW);
+
+     digitalWrite(FL_L_PWM, LOW);
+     digitalWrite(FL_R_PWM, LOW);
+
+     digitalWrite(RL_L_PWM, LOW);
+     digitalWrite(RL_R_PWM, LOW);
+}
+
+  if (elevator_dur > 1600 )
+  {
+     digitalWrite(FR_L_PWM, LOW);
+    analogWrite(FR_R_PWM, power);
+
+    digitalWrite(RR_L_PWM, LOW);
+    analogWrite(RR_R_PWM, power);
+
+    analogWrite(FL_L_PWM, power);
+    digitalWrite(FL_R_PWM, LOW);
+
+    analogWrite(RL_L_PWM, power);
+    digitalWrite(RL_R_PWM, LOW);
+
+  }
+
+  if (elevator_dur < 1400 )
+  {
+
+     analogWrite(FR_L_PWM, power);
+    digitalWrite(FR_R_PWM, LOW);
+
+     analogWrite(RR_L_PWM, power);
+    digitalWrite(RR_R_PWM, LOW);
+
+    digitalWrite(FL_L_PWM, LOW);
+    analogWrite(FL_R_PWM, power);
+
+    digitalWrite(RL_L_PWM, LOW);
+    analogWrite(RL_R_PWM, power);
+  
+  }
+
+
+   if (aileron_dur > 1600 )
+  {
+    digitalWrite(FR_L_PWM, LOW);
+    analogWrite(FR_R_PWM, power);
+
+    digitalWrite(RR_L_PWM, LOW);
+    analogWrite(RR_R_PWM, power);
+
+    digitalWrite(FL_L_PWM, LOW);
+    analogWrite(FL_R_PWM, power);
+
+    digitalWrite(RL_L_PWM, LOW);
+    analogWrite(RL_R_PWM, power);
+  }
+
+  if (aileron_dur < 1400 )
+  {
+
+    analogWrite(FR_L_PWM, power);
+    digitalWrite(FR_R_PWM, LOW);
+
+     analogWrite(RR_L_PWM, power);
+    digitalWrite(RR_R_PWM, LOW);
+
+    analogWrite(FL_L_PWM, power);
+    digitalWrite(FL_R_PWM, LOW);
+
+    analogWrite(RL_L_PWM, power);
+    digitalWrite(RL_R_PWM, LOW);
+  
+  }
+
+  Serial.print(throttle_dur);
+  Serial.print(", ");
+  Serial.print(elevator_dur);
+  Serial.print(", ");
+  Serial.print(aileron_dur);
+  Serial.println();
+  delay(50);
+}
